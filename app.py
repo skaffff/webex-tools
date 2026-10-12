@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local, read-only Webex space exporter. Python 3.10+, no dependencies."""
+"""Local Webex exporter and space member copier. Python 3.10+, no dependencies."""
 import html
 import json
 import os
@@ -13,7 +13,8 @@ from zoneinfo import ZoneInfo
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError
-from urllib.parse import quote, urlencode, urlparse
+from urllib.parse import quote, urlencode, urlparse, parse_qs
+from space_copy import SpaceCopy
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
 ROOT = Path(__file__).resolve().parent
@@ -203,6 +204,8 @@ def export(room_id, include_files):
                 update(error='Unable to finish writing the export. Check available disk space.')
         update(status=status, phase='Finished')
 
+COPIER = SpaceCopy(ROOT, token, fetch, pages)
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -228,6 +231,9 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path == '/':
                 return self.send((ROOT / 'ui.html').read_text().replace('__CSRF__', CSRF), mime='text/html')
+            if path == '/api/copy/status':
+                operation_id = parse_qs(urlparse(self.path).query).get('id', [''])[0]
+                return self.send(COPIER.status(operation_id))
             if path == '/api/status':
                 with LOCK:
                     return self.send(dict(STATE))
@@ -255,6 +261,25 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self.allowed() or self.headers.get('X-CSRF-Token') != CSRF:
             return self.send({'error': 'Invalid request'}, 403)
+        if self.path in ('/api/copy/members', '/api/copy/preview', '/api/copy/create'):
+            try:
+                size = int(self.headers.get('Content-Length', 0))
+                if not 0 < size <= 262144:
+                    raise ValueError('Invalid request size.')
+                body = json.loads(self.rfile.read(size))
+                if not isinstance(body, dict):
+                    raise ValueError('Invalid request body.')
+                if self.path.endswith('/members'):
+                    result = COPIER.members(body.get('roomId'))
+                elif self.path.endswith('/preview'):
+                    result = COPIER.preview(body)
+                else:
+                    result = COPIER.start(body.get('id'))
+                return self.send(result)
+            except ValueError as exc:
+                return self.send({'error': str(exc)}, 400)
+            except Exception:
+                return self.send({'error': 'Could not finish the request. Check your connection and local file permissions.'}, 400)
         if self.path == '/api/cancel':
             CANCEL.set()
             return self.send({'ok': True})
@@ -282,7 +307,7 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     os.umask(0o077)
     server = ThreadingHTTPServer(('127.0.0.1', PORT), Handler)
-    print(f'Webex Space Exporter: http://127.0.0.1:{PORT}', flush=True)
+    print(f'Webex Tools: http://127.0.0.1:{PORT}', flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

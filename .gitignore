@@ -8,3 +8,6 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
+
+# Local space-copy previews and member results
+.space-copy/

@@ -1,8 +1,13 @@
-# Webex Space Exporter
+# Webex Tools
 
-Back up a Webex space to your computer with a simple local control panel. Export a readable HTML conversation, original message JSON, and optional attachments.
+A local control panel with two tools:
 
-The exporter reads your spaces. It does not send messages, archive spaces, or change anything in Webex.
+- **Export space** — save an offline HTML conversation, original message JSON, and optional attachments.
+- **Copy members** — create a separate space with selected colleagues and an optional client, leaving the original conversation unchanged.
+
+Switch tabs to use the tool you need. Each tab has its own space selector. Tasks continue if you switch tabs.
+
+Exporting is read-only. The optional **Copy members to a new space** feature creates a separate space and adds the people you review. Neither feature changes the source space or sends chat messages.
 
 ## What you need
 
@@ -17,8 +22,8 @@ No Python packages to install. The included double-click launcher is for macOS; 
 On GitHub, choose **Code → Download ZIP**, then unzip it. Or use Git:
 
 ```sh
-git clone https://github.com/skaffff/webex-space-exporter.git
-cd webex-space-exporter
+git clone https://github.com/skaffff/webex-tools.git
+cd webex-tools
 ```
 
 Run the following commands from inside the project folder.
@@ -68,7 +73,7 @@ If the launcher is not executable, run `chmod +x start.command`, or use the Pyth
 
 ## 5. Export a space
 
-1. Click **Load spaces**.
+1. Open the **Export space** tab and click **Load spaces**.
 2. Filter by name and select the space or direct conversation.
 3. Leave **Download attached files and images** checked if you want those files included.
 4. Click **Export selected space**.
@@ -76,6 +81,22 @@ If the launcher is not executable, run `chmod +x start.command`, or use the Pyth
 6. Wait for **Export complete**, then click **Open offline transcript**.
 
 You can cancel an export. Cancelled or failed runs keep their partial data and are marked accordingly. A new export starts in a fresh folder; it does not resume a previous run.
+
+## Copy members to a new space
+
+Use this to create a separate client space while keeping your internal conversation intact.
+
+1. Open the **Copy members** tab, click **Load spaces**, and select the internal space.
+2. Click **Load selected space members**.
+3. Enter a name for the new space and review the member checkboxes. Your own account is included automatically as the creator.
+4. Optionally enter the client's Webex email address.
+5. Click **Preview new space**. Review the exact name and recipients.
+6. Click **Create space and add these people**. This is the step that changes Webex; members may receive Webex notifications.
+7. Check the result for each person. If any addition fails, the new space is kept and the result explains the failure. Add missing people manually in Webex after resolving the issue.
+
+The new space is standalone: it does not inherit the internal team, moderator roles, or other space settings. No conversation history or files are copied. Your organization must allow external communication with the client's domain.
+
+The app does not automatically retry writes after a timeout, because the action may already have succeeded. Repeated submissions of the same preview reuse the same operation. If a result is uncertain or the server stops during creation, check Webex before starting a new preview. Previews expire after 30 minutes. Local operation records are kept in `.space-copy/`, which is ignored by Git, and the browser remembers the latest operation across refreshes.
 
 ## Where is the backup?
 
@@ -125,6 +146,8 @@ To stop the server, press **Control-C** in its terminal. The token is read again
 ## Project files
 
 - `app.py` — local server and Webex export logic.
+- `space_copy.py` — member preview and new-space creation.
+- `test_space_copy.py` — mocked tests; run `python3 -m unittest -v`.
 - `ui.html` — control panel.
 - `start.command` — macOS launcher.
 - `.env.example` — token configuration template.

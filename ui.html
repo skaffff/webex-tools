@@ -1,8 +1,19 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Webex Space Exporter</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Webex Tools</title>
 <style>
 :root{font:16px system-ui;color:#e5ecf7;background:#101925}*{box-sizing:border-box}body{max-width:1000px;margin:55px auto;padding:24px}h1{font-size:40px;letter-spacing:-1.5px;margin:8px 0}h2{font-size:20px}p{color:#aebbd0;line-height:1.6}.eyebrow{color:#7de4ce;letter-spacing:2px;font-size:12px;font-weight:700}.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;margin-top:32px}.card{padding:26px;border:1px solid #344257;border-radius:18px;background:#192537}button,input,select{font:inherit}button{padding:12px 18px;border:0;border-radius:9px;background:#7de4ce;color:#102c29;font-weight:650;cursor:pointer}button.secondary{background:#304158;color:#e5ecf7}button:disabled{opacity:.45;cursor:default}input[type=search],select{width:100%;background:#101925;color:#e5ecf7;border:1px solid #45556c;border-radius:8px;padding:12px;margin:12px 0}select{height:230px}option{padding:9px}label{display:block;margin:15px 0}small{color:#aebbd0}.metrics{display:flex;gap:36px;margin:30px 0}.metrics b{font-size:34px;display:block}.actions{display:flex;gap:12px;flex-wrap:wrap}#notice{color:#ffc990;white-space:pre-wrap;overflow-wrap:anywhere}a{color:#7de4ce}#result{margin-top:24px;line-height:1.7;overflow-wrap:anywhere}#status{color:#7de4ce}@media(max-width:700px){.grid{grid-template-columns:1fr}body{margin:15px auto}h1{font-size:32px}}
-</style></head><body><div class="eyebrow">LOCAL BACKUP</div><h1>Webex Space Exporter</h1><p>Export a Webex space to an offline HTML transcript, raw JSON, and optional attachments.</p><div class="grid"><section class="card"><h2>1. Choose a space</h2><button id="load" class="secondary">Load spaces</button><input id="search" type="search" placeholder="Filter spaces by name" aria-label="Filter spaces"><select id="rooms" size="7" aria-label="Webex spaces"></select><small id="count">Connect using the token in your .env file.</small><label><input type="checkbox" id="attachments" checked> Download attached files and images</label><button id="start" disabled>Export selected space</button></section><section class="card"><h2>2. Save your history</h2><p id="status" role="status" aria-live="polite">Ready when you are.</p><div class="metrics"><div><b id="messages">0</b><small>Messages</small></div><div><b id="files">0</b><small>Files saved</small></div></div><div class="actions"><button id="cancel" class="secondary" disabled>Cancel export</button></div><p id="notice" role="alert"></p><div id="result"></div></section></div><p><small>Exports stay in the project's <strong>exports</strong> folder. Only currently available messages are included. External cloud documents, whiteboards, recordings, reactions, and edit history are not separately exported. This creates an offline copy; it cannot restore a space into Webex.</small></p>
+
+.copy-card{margin-top:28px}.copy-card input[type=text],.copy-card input[type=email]{width:100%;padding:12px;border:1px solid #45556c;border-radius:8px;background:#101925;color:#e5ecf7}.copy-card fieldset{border:0;padding:0;margin:0}.member-list{max-height:300px;overflow:auto;margin:18px 0}.member-list label{overflow-wrap:anywhere}#copy-notice{color:#ffc990;white-space:pre-wrap}#copy-room-id{overflow-wrap:anywhere;font-size:12px}#copy-review{border-top:1px solid #45556c;margin-top:20px}#copy-results li{margin:12px 0}
+
+[hidden]{display:none!important}.tool-tabs{display:flex;gap:8px;border-bottom:1px solid #344257;margin-top:30px;padding-bottom:12px}.tool-tabs button{background:transparent;color:#aebbd0}.tool-tabs button[aria-selected=true]{background:#7de4ce;color:#102c29}.tool-tabs button:focus-visible{outline:2px solid #fff;outline-offset:3px}.copy-selector{max-width:600px;margin:24px 0}.copy-selector small{display:block;margin-bottom:20px}
+</style></head><body><div class="eyebrow">YOUR WEBEX WORKSPACE</div><h1>Webex Tools</h1><p>Choose a tool to back up a conversation or start a separate space with your team.</p>
+<nav class="tool-tabs" role="tablist" aria-label="Webex tools"><button id="tab-export" role="tab" aria-selected="true" aria-controls="panel-export" tabindex="0">Export space</button><button id="tab-copy" role="tab" aria-selected="false" aria-controls="panel-copy" tabindex="-1">Copy members</button></nav>
+<section id="panel-export" role="tabpanel" aria-labelledby="tab-export"><div class="grid"><section class="card"><h2>1. Choose a space</h2><button id="load" class="secondary">Load spaces</button><input id="search" type="search" placeholder="Filter spaces by name" aria-label="Filter spaces"><select id="rooms" size="7" aria-label="Webex spaces"></select><small id="count">Connect using the token in your .env file.</small><label><input type="checkbox" id="attachments" checked> Download attached files and images</label><button id="start" disabled>Export selected space</button></section><section class="card"><h2>2. Save your history</h2><p id="status" role="status" aria-live="polite">Ready when you are.</p><div class="metrics"><div><b id="messages">0</b><small>Messages</small></div><div><b id="files">0</b><small>Files saved</small></div></div><div class="actions"><button id="cancel" class="secondary" disabled>Cancel export</button></div><p id="notice" role="alert"></p><div id="result"></div></section></div><p><small>Exports stay in the project's <strong>exports</strong> folder. Only currently available messages are included. External cloud documents, whiteboards, recordings, reactions, and edit history are not separately exported. This creates an offline copy; it cannot restore a space into Webex.</small></p>
+</section>
+<section id="panel-copy" role="tabpanel" aria-labelledby="tab-copy" hidden>
+<section class="card copy-card"><h2>Copy members to a new space</h2><p>Create a separate conversation with selected members and an optional client. The original space stays unchanged; history and files are not copied.</p><div class="copy-selector"><button id="copy-load-spaces" class="secondary">Load spaces</button><input id="copy-search" type="search" placeholder="Filter source spaces by name" aria-label="Filter source spaces"><select id="copy-rooms" size="7" aria-label="Source space for copying members"></select><small id="copy-count">Load spaces to choose the internal conversation.</small></div><button id="copy-load" class="secondary" disabled>Load selected space members</button><p id="copy-source"></p><fieldset id="copy-fields" hidden><label for="copy-title">New space name</label><input id="copy-title" type="text" maxlength="128" placeholder="Project name — Client"><label for="copy-email">Client Webex email (optional)</label><input id="copy-email" type="email" placeholder="client@example.com"><p id="copy-owner"></p><div id="copy-members" class="member-list"></div><button id="copy-preview">Preview new space</button></fieldset><p id="copy-notice" role="status" aria-live="polite"></p><section id="copy-review" hidden><h3>Review new space</h3><p id="copy-summary"></p><ul id="copy-recipients"></ul><p>Creates a standalone space with the people listed above. Team membership, moderator roles, and existing conversations are not copied. Webex may notify people when they are added.</p><button id="copy-create">Create space and add these people</button></section><section id="copy-outcome" hidden><h3>Creation result</h3><p id="copy-progress" aria-live="polite"></p><p id="copy-room-id"></p><ul id="copy-results"></ul></section></section>
+
+</section>
 <script>
 const $=id=>document.getElementById(id);let rooms=[],running=false;
 async function api(path,body){const r=await fetch('/api/'+path,body?{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'__CSRF__'},body:JSON.stringify(body)}:{});const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');return d}
@@ -13,4 +24,71 @@ $('start').onclick=async()=>{$('start').disabled=true;try{await api('export',{ro
 $('cancel').onclick=async()=>{try{await api('cancel',{});$('status').textContent='Cancelling after the current network operation…';$('cancel').disabled=true}catch(e){$('notice').textContent=e.message}};
 async function poll(){try{const s=await api('status');running=s.status==='running';$('start').disabled=running||!$('rooms').value;$('cancel').disabled=!running;$('messages').textContent=s.messages||0;$('files').textContent=s.files||0;$('status').textContent=running?s.phase+(s.total_files?' ('+s.total_files+' files total)':''):({idle:'Ready when you are.',completed:'Export complete.',completed_with_warnings:'Export finished with missing attachments.',failed:'Export failed — any saved data is partial.',cancelled:'Export cancelled — saved data is partial.'}[s.status]||s.status);$('notice').textContent=(s.error||'')+(s.warnings?.length?'\n'+s.warnings.length+' attachment(s) could not be downloaded. See manifest.json.':'');$('result').replaceChildren();if(s.url&&!running){const a=document.createElement('a');a.href=s.url;a.target='_blank';a.rel='noopener';a.textContent=s.status.startsWith('completed')?'Open offline transcript ↗':'View partial transcript ↗';$('result').append(a,document.createElement('br'),document.createTextNode('Saved in exports/'+s.folder+'/'))}}catch(e){$('notice').textContent='Local server unavailable. Restart with ./start.command.'}}
 poll();setInterval(poll,1500);
+let copySource=null,copyOperation=null,copyBusy=false,copyPolling=false,copyLoading=false;
+const copyKey='webex-space-copy-operation';
+function rememberCopy(id){try{localStorage.setItem(copyKey,id)}catch(e){}}
+function forgetCopy(){try{localStorage.removeItem(copyKey)}catch(e){}}
+function copyError(e){$('copy-notice').textContent=e.message}
+function invalidateCopy(){if(copyBusy)return;copyOperation=null;forgetCopy();$('copy-review').hidden=true;}
+function lockCopy(busy){copyBusy=busy;$('copy-fields').disabled=busy;$('copy-load').disabled=busy||copyLoading||!$('copy-rooms').value;$('copy-create').disabled=busy;}
+$('copy-title').oninput=invalidateCopy;$('copy-email').oninput=invalidateCopy;
+$('copy-load').onclick=async()=>{
+ const roomId=$('copy-rooms').value;if(!roomId)return copyError(Error('Select a source space first.'));
+ copyLoading=true;$('copy-load').disabled=true;$('copy-notice').textContent='Loading members…';$('copy-fields').disabled=true;
+ try{
+  const source=await api('copy/members',{roomId});copySource=source;invalidateCopy();$('copy-outcome').hidden=true;
+  $('copy-source').textContent='Source: '+source.source.title;
+  $('copy-title').value=(source.source.title+' — Client').slice(0,128);$('copy-email').value='';
+  $('copy-owner').textContent='You are included automatically: '+(source.owner.email||source.owner.name);
+  $('copy-members').replaceChildren();
+  for(const person of source.members){if(person.isSelf)continue;const label=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.value=person.personId;cb.onchange=invalidateCopy;label.append(cb,document.createTextNode(' '+person.name+(person.email&&person.email!==person.name?' · '+person.email:'')));$('copy-members').append(label);}
+  $('copy-fields').hidden=false;$('copy-notice').textContent='Review the members and enter a new space name.';
+ }catch(e){copyError(e)}finally{copyLoading=false;lockCopy(false)}
+};
+$('copy-preview').onclick=async()=>{
+ if(!copySource)return;
+ if(!$('copy-email').reportValidity())return;
+ invalidateCopy();lockCopy(true);$('copy-notice').textContent='Preparing preview…';
+ try{
+  const personIds=[...$('copy-members').querySelectorAll('input:checked')].map(cb=>cb.value);
+  copyOperation=await api('copy/preview',{roomId:copySource.source.id,title:$('copy-title').value,clientEmail:$('copy-email').value,personIds});
+  rememberCopy(copyOperation.id);showCopy(copyOperation);$('copy-notice').textContent='Review the list below, then create the space.';
+ }catch(e){copyError(e)}finally{lockCopy(false)}
+};
+function showCopy(op){
+ copyOperation=op;const preview=op.status==='preview';$('copy-review').hidden=!preview;$('copy-outcome').hidden=preview;
+ if(preview){
+  $('copy-summary').textContent='“'+op.title+'” · '+(op.recipients.length+1)+' people · Source: '+op.source.title;
+  $('copy-recipients').replaceChildren();
+  for(const person of [op.owner,...op.recipients]){const li=document.createElement('li');li.textContent=(person.email||person.name)+(person===op.owner?' (you, creator)':'');$('copy-recipients').append(li);}
+ }else{
+  $('copy-progress').textContent=op.title+' — '+op.phase;
+  $('copy-room-id').textContent=op.roomId?'New space ID: '+op.roomId:'';
+  $('copy-results').replaceChildren();
+  for(const result of op.results){const li=document.createElement('li');li.textContent=(result.email||result.name)+' — '+result.status+(result.error?': '+result.error:'');$('copy-results').append(li);}
+ }
+ lockCopy(op.status==='running');
+}
+$('copy-create').onclick=async()=>{
+ if(!copyOperation||copyOperation.status!=='preview'||copyBusy)return;
+ lockCopy(true);$('copy-notice').textContent='Submitting creation request…';
+ try{const result=await api('copy/create',{id:copyOperation.id});showCopy(result);$('copy-notice').textContent='';}
+ catch(e){copyError(e);await pollCopy();}
+};
+async function pollCopy(){
+ if(!copyOperation||copyPolling)return;copyPolling=true;
+ try{const result=await api('copy/status?id='+encodeURIComponent(copyOperation.id));showCopy(result);}
+ catch(e){copyError(Error('Unable to check creation status. Restore the connection before starting another space.'));}
+ finally{copyPolling=false;}
+}
+try{const saved=localStorage.getItem(copyKey);if(saved){copyOperation={id:saved,status:'running'};lockCopy(true);pollCopy();}}catch(e){}
+let copyRooms=[];
+function filterCopyRooms(){const selected=$('copy-rooms').value;const q=$('copy-search').value.toLowerCase();$('copy-rooms').replaceChildren();for(const room of copyRooms.filter(r=>r.title.toLowerCase().includes(q))){const option=document.createElement('option');option.value=room.id;option.textContent=room.title+(room.type==='direct'?' · Direct message':'');$('copy-rooms').append(option)}if([...$('copy-rooms').options].some(o=>o.value===selected))$('copy-rooms').value=selected;$('copy-count').textContent=$('copy-rooms').options.length+' spaces shown';$('copy-load').disabled=copyBusy||copyLoading||!$('copy-rooms').value;}
+$('copy-search').oninput=filterCopyRooms;
+$('copy-rooms').onchange=()=>{$('copy-load').disabled=copyBusy||copyLoading||!$('copy-rooms').value;};
+$('copy-load-spaces').onclick=async()=>{$('copy-load-spaces').disabled=true;$('copy-count').textContent='Loading spaces…';try{copyRooms=(await api('rooms')).rooms;filterCopyRooms()}catch(e){copyError(e);$('copy-count').textContent='Unable to load spaces.'}finally{$('copy-load-spaces').disabled=false}};
+function switchTool(name){for(const tool of ['export','copy']){const active=tool===name;$('tab-'+tool).setAttribute('aria-selected',String(active));$('tab-'+tool).tabIndex=active?0:-1;$('panel-'+tool).hidden=!active;}}
+for(const tool of ['export','copy']){$('tab-'+tool).onclick=()=>switchTool(tool);$('tab-'+tool).onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?'export':e.key==='End'?'copy':tool==='export'?'copy':'export';switchTool(next);$('tab-'+next).focus();}};}
+setInterval(()=>{if(copyOperation&&copyOperation.status==='running')pollCopy()},1500);
+
 </script></body></html>
