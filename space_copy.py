@@ -91,15 +91,17 @@ class SpaceCopy:
 
     def preview(self, body):
         title = body.get('title', '')
-        email = body.get('clientEmail', '')
+        email_input = body.get('clientEmails', body.get('clientEmail', ''))
         selected = body.get('personIds', [])
         if not isinstance(title, str) or not 1 <= len(title.strip()) <= 128:
             raise ValueError('Enter a new space name between 1 and 128 characters.')
-        if not isinstance(email, str):
-            raise ValueError('Enter a valid client email address.')
-        email = email.strip().lower()
-        if email and (len(email) > 254 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', email)):
-            raise ValueError('Enter a valid client email address, or leave it blank.')
+        if not isinstance(email_input, str):
+            raise ValueError('Enter client email addresses as text.')
+        emails = list(dict.fromkeys(part.strip().lower() for part in
+                                    re.split(r'[,;\r\n]+', email_input) if part.strip()))
+        for index, email in enumerate(emails, 1):
+            if len(email) > 254 or not re.fullmatch(r'[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+', email):
+                raise ValueError(f'Client email {index} is invalid. Separate addresses with commas, semicolons, or new lines.')
         if not isinstance(selected, list) or not all(isinstance(v, str) for v in selected):
             raise ValueError('Invalid member selection.')
         source = self.members(body.get('roomId'))
@@ -109,8 +111,10 @@ class SpaceCopy:
         recipients = [dict(available[pid]) for pid in dict.fromkeys(selected)
                       if pid != source['owner']['personId']]
         existing_emails = {m.get('email', '').lower() for m in recipients + [source['owner']]}
-        if email and email not in existing_emails:
-            recipients.append({'email': email, 'name': email, 'client': True})
+        for email in emails:
+            if email not in existing_emails:
+                recipients.append({'email': email, 'name': email, 'client': True})
+                existing_emails.add(email)
         if not recipients:
             raise ValueError('Select at least one other member or enter a client email.')
         operation = {'id': secrets.token_hex(16), 'status': 'preview', 'createdAt': time.time(),

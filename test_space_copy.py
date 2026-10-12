@@ -56,6 +56,27 @@ class SpaceCopyTests(unittest.TestCase):
         self.body.update(personIds=['me', 'colleague', 'colleague'], clientEmail='COWORKER@example.com')
         self.assertEqual(len(self.service.preview(self.body)['recipients']), 1)
 
+    def test_multiple_clients_accept_mixed_separators_and_deduplicate(self):
+        self.body['clientEmails'] = ' FIRST@example.org;second@example.org,\nfirst@example.org\r\nCOWORKER@example.com;me@example.com; '
+        operation = self.service.preview(self.body)
+        self.assertEqual([p['email'] for p in operation['recipients']],
+                         ['coworker@example.com', 'first@example.org', 'second@example.org'])
+        result = self.start(operation)
+        self.assertEqual(result['status'], 'completed')
+        self.assertEqual(len(result['results']), 3)
+
+    def test_invalid_address_in_list_rejects_entire_preview(self):
+        self.body['clientEmails'] = 'valid@example.org;broken;another@example.org'
+        with self.assertRaisesRegex(ValueError, 'Client email 2 is invalid'):
+            self.service.preview(self.body)
+        self.post.assert_not_called()
+        self.assertFalse(self.service.root.exists())
+
+    def test_empty_client_list_keeps_selected_members(self):
+        self.body['clientEmails'] = ' ;,\n '
+        operation = self.service.preview(self.body)
+        self.assertEqual([p['personId'] for p in operation['recipients']], ['colleague'])
+
     def test_invalid_selection_and_email_rejected_without_writes(self):
         for changes in ({'personIds': ['outsider']}, {'clientEmail': 'not-an-email'}, {'title': ' '}):
             with self.assertRaises(ValueError):

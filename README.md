@@ -3,7 +3,7 @@
 A local control panel with two tools:
 
 - **Export space** — save an offline HTML conversation, original message JSON, and optional attachments.
-- **Copy members** — create a separate space with selected colleagues and an optional client, leaving the original conversation unchanged.
+- **Copy members** — create a separate space with selected colleagues and optional clients, leaving the original conversation unchanged.
 
 Switch tabs to use the tool you need. Each tab has its own space selector. Tasks continue if you switch tabs.
 
@@ -89,7 +89,7 @@ Use this to create a separate client space while keeping your internal conversat
 1. Open the **Copy members** tab, click **Load spaces**, and select the internal space.
 2. Click **Load selected space members**.
 3. Enter a name for the new space and review the member checkboxes. Your own account is included automatically as the creator.
-4. Optionally enter the client's Webex email address.
+4. Optionally enter one or more client Webex email addresses, separated by commas, semicolons, or new lines. Duplicate addresses and people already selected are included only once.
 5. Click **Preview new space**. Review the exact name and recipients.
 6. Click **Create space and add these people**. This is the step that changes Webex; members may receive Webex notifications.
 7. Check the result for each person. If any addition fails, the new space is kept and the result explains the failure. Add missing people manually in Webex after resolving the issue.
